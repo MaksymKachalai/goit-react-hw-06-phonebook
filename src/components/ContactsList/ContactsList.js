@@ -1,26 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 import ContactsEditor from '../ContactsEditor/ContactsEditor';
 import ContactsRendering from '../ContactsRendering/ContactsRendering';
 import ContactsFilter from '../ContactsFilter/ContactsFilter';
 import './ContactsList.css';
-import initialContacts from '../../data/contactsList';
-
-function setInitialContacts() {
-  const savedContacts = JSON.parse(localStorage.getItem('contacts'));
-  const initialValue = savedContacts ? savedContacts : initialContacts;
-  return initialValue;
-}
 
 export default function ContactsList() {
-  const [contacts, setContacts] = useState(() => setInitialContacts());
-
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-  }, [contacts]);
+  const contacts = useSelector(state => state.contacts.value);
+  const filter = useSelector(state => state.filter.value);
 
   const filteredContacts = useMemo(() => {
     const normalizedFilter = filter.toLowerCase();
@@ -29,41 +17,16 @@ export default function ContactsList() {
     );
   }, [contacts, filter]);
 
-  const addContact = (name, number) => {
-    const contact = {
-      name,
-      number,
-      id: uuidv4(),
-    };
-
-    const isCreated = contacts.find(item => item.number === number);
-
-    if (isCreated) return alert('Contact has already been created');
-
-    setContacts(prevState => [...prevState, contact]);
-  };
-
-  const deleteContact = id => {
-    setContacts(prevState => prevState.filter(contact => contact.id !== id));
-  };
-
-  const changeFilter = event => {
-    setFilter(event.currentTarget.value);
-  };
-
   return (
     <>
       <div className="phonebook-container">
         <div className="login-box">
           <h2>PhoneBook</h2>
-          <ContactsEditor onSubmit={addContact} />
+          <ContactsEditor />
         </div>
         <div className="phonebook-box">
-          <ContactsFilter value={filter} onChange={changeFilter} />
-          <ContactsRendering
-            filterList={filteredContacts}
-            deleteContact={deleteContact}
-          />
+          <ContactsFilter />
+          <ContactsRendering filterList={filteredContacts} />
         </div>
       </div>
     </>
